@@ -1,5 +1,20 @@
 import http from "node:http";
 import { timingSafeEqual } from "node:crypto";
+import { readFileSync } from "node:fs";
+
+// Minimal .env loader for local use; real process environment always takes precedence.
+try {
+  const envText = readFileSync(".env", "utf8");
+  for (const line of envText.split(/\\r?\\n/)) {
+    const match = line.match(/^\\s*([A-Za-z_][A-Za-z0-9_]*)\\s*=\\s*(.*)\\s*$/);
+    if (!match || Object.hasOwn(process.env, match[1])) continue;
+    let value = match[2].trim();
+    if ((value.startsWith('"') && value.endsWith('"')) || (value.startsWith("'") && value.endsWith("'"))) {
+      value = value.slice(1, -1);
+    }
+    process.env[match[1]] = value;
+  }
+} catch { /* .env is optional in hosted environments */ }
 
 const PORT = Number(process.env.PORT || 8787);
 const HOST = process.env.HOST || "0.0.0.0";
