@@ -1,12 +1,14 @@
 import http from "node:http";
 import { timingSafeEqual } from "node:crypto";
 import { readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
+import { resolve } from "node:path";
 
 // Minimal .env loader for local use; real process environment always takes precedence.
 try {
   const envText = readFileSync(".env", "utf8");
-  for (const line of envText.split(/\\r?\\n/)) {
-    const match = line.match(/^\\s*([A-Za-z_][A-Za-z0-9_]*)\\s*=\\s*(.*)\\s*$/);
+  for (const line of envText.split(/\r?\n/)) {
+    const match = line.match(/^\s*([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(.*)\s*$/);
     if (!match || Object.hasOwn(process.env, match[1])) continue;
     let value = match[2].trim();
     if ((value.startsWith('"') && value.endsWith('"')) || (value.startsWith("'") && value.endsWith("'"))) {
@@ -178,7 +180,7 @@ export function createServer() {
   });
 }
 
-if (process.argv[1] && new URL(import.meta.url).pathname === process.argv[1]) {
+if (process.argv[1] && fileURLToPath(import.meta.url) === resolve(process.argv[1])) {
   createServer().listen(PORT, HOST, () => {
     console.log("Base AI Gateway listening on " + HOST + ":" + PORT);
   });
